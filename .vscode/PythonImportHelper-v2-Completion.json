@@ -6900,6 +6900,14 @@
         "documentation": {}
     },
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "numpy",
         "kind": 6,
         "isExtraImport": true,
@@ -13157,6 +13165,14 @@
         "description": "ultralytics.engine.model",
         "isExtraImport": true,
         "detail": "ultralytics.engine.model",
+        "documentation": {}
+    },
+    {
+        "label": "Results",
+        "importPath": "ultralytics.engine.results",
+        "description": "ultralytics.engine.results",
+        "isExtraImport": true,
+        "detail": "ultralytics.engine.results",
         "documentation": {}
     },
     {
@@ -26814,11 +26830,11 @@
         "documentation": {}
     },
     {
-        "label": "model",
+        "label": "model_name",
         "kind": 5,
         "importPath": "Identification.real_time_yolo_demo",
         "description": "Identification.real_time_yolo_demo",
-        "peekOfCode": "model = YOLO(\"yolov10n.pt\")\n# capture video\ncap = cv2.VideoCapture(0)\n# Loop through the video frames\nwhile cap.isOpened():\n    # Read a frame from the video\n    success, frame = cap.read()\n    if success:\n        # Run YOLO inference on the frame\n        results = model(frame)",
+        "peekOfCode": "model_name = 'yolo11n.pt'\n# Download the YOLO model\nif not os.path.isfile(model_name):\n    print(f'{model_name} does not exist. Downloading...')\n    download_url = 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt'\n    response = requests.get(download_url)\n    if response.status_code == 200:\n        with open(model_name, 'wb') as file:\n            file.write(response.content)\n        print(f'Downloaded {model_name}')",
         "detail": "Identification.real_time_yolo_demo",
         "documentation": {}
     },
@@ -26827,7 +26843,16 @@
         "kind": 5,
         "importPath": "Identification.real_time_yolo_demo",
         "description": "Identification.real_time_yolo_demo",
-        "peekOfCode": "cap = cv2.VideoCapture(0)\n# Loop through the video frames\nwhile cap.isOpened():\n    # Read a frame from the video\n    success, frame = cap.read()\n    if success:\n        # Run YOLO inference on the frame\n        results = model(frame)\n        # Visualize the results on the frame\n        annotated_frame = results[0].plot()",
+        "peekOfCode": "cap = cv2.VideoCapture(0)\nfont = cv2.FONT_HERSHEY_SIMPLEX\n# Loop through the video frames\nwhile cap.isOpened():\n    # Read a frame from the video\n    success, frame = cap.read()\n    if success:\n        # Run YOLO inference on the frame\n        results: List[Results] = model(frame)\n        # Visualize the results on the frame",
+        "detail": "Identification.real_time_yolo_demo",
+        "documentation": {}
+    },
+    {
+        "label": "font",
+        "kind": 5,
+        "importPath": "Identification.real_time_yolo_demo",
+        "description": "Identification.real_time_yolo_demo",
+        "peekOfCode": "font = cv2.FONT_HERSHEY_SIMPLEX\n# Loop through the video frames\nwhile cap.isOpened():\n    # Read a frame from the video\n    success, frame = cap.read()\n    if success:\n        # Run YOLO inference on the frame\n        results: List[Results] = model(frame)\n        # Visualize the results on the frame\n        annotated_frame: np.ndarray = results[0].plot()",
         "detail": "Identification.real_time_yolo_demo",
         "documentation": {}
     },
@@ -26836,7 +26861,7 @@
         "kind": 2,
         "importPath": "Identification.train",
         "description": "Identification.train",
-        "peekOfCode": "def main():\n    config_path = r'datasets/config.yaml'\n    # Load a model\n    model = YOLO(\"yolov10n.pt\")\n    # Use the model with a reduced batch size\n    model.train(data=config_path, epochs=100, batch=16, amp=False)\nif __name__ == '__main__':\n    main()",
+        "peekOfCode": "def main():\n    config_path = r'datasets/config.yaml'\n    # Load a model\n    model = YOLO('yolo11n.pt')\n    # Use the model with a reduced batch size\n    model.train(data=config_path, epochs=200, batch=16, amp=False) # modify params for different training\nif __name__ == '__main__':\n    main()",
         "detail": "Identification.train",
         "documentation": {}
     }
