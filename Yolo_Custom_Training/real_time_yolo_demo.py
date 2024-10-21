@@ -7,6 +7,7 @@ import requests
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
+# model_name = 'best.pt'
 model_name = 'yolo11n.pt'
 # Download the YOLO model
 if not os.path.isfile(model_name):
