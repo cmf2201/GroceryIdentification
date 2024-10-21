@@ -1,2 +1,4 @@
 # Ignore datasets folder to not have too much size in the repo
 datasets/
+# ignore all .pt files of pre trained models
+*.pt
