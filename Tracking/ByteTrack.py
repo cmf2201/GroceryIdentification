@@ -16,7 +16,9 @@ class ByteTrack:
         
         self.sortDetections(detections)
         
-        # TODO: Send each object in tracks through KalmanFilter
+        # TODO: Send each object in tracks through KalmanFilter to get predictions
+        # TODO: Associate predictions with self.high_confidence_detections via IoU (see Utils.py)
+        # TODO: Associate remaining predictions with self.low_confidence_detections via IoU
     
     def sortDetections(self, detections) -> None:
         for detection in detections:

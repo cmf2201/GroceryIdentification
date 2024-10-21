@@ -1,6 +1,6 @@
 import numpy as np
 
-def calculate_area(pixels):
+def calculateArea(pixels):
     """Calculates the area of a square from the pixel corners provided.
 
     Args:
@@ -22,7 +22,7 @@ def calculate_area(pixels):
     area = width * height
     return area
 
-def compute_iou(box1, box2):
+def computeIoU(box1, box2):
     """Calcuated the IoU between two detection boxes
 
     Args:
@@ -45,7 +45,7 @@ def compute_iou(box1, box2):
     else:
         intersection_area = (x_right - x_left) * (y_bottom - y_top)
 
-    union_area = calculate_area(box1) + calculate_area(box2) - intersection_area
+    union_area = calculateArea(box1) + calculateArea(box2) - intersection_area
     
     # If boxes do not overlap at all, then the union will be zero. To avoid dividing by zero, 
     # we just return an IoU of 0.0, meaning the boxes are completely seperate.
