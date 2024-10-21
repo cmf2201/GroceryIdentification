@@ -2,3 +2,7 @@
 datasets/
 # ignore all .pt files of pre trained models
 *.pt
+# Ignore and delete vscode
+.vscode/
+# Ignore virtual environment folder
+.venv/

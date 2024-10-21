@@ -1,1 +1,0 @@
-Create dataset from chosen grocery data once that is decided to retrain model better
