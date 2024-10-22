@@ -6,3 +6,5 @@ datasets/
 .vscode/
 # Ignore virtual environment folder
 .venv/
+
+Tracking/__pycache__/
