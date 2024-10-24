@@ -8,5 +8,8 @@ datasets/
 .venv/
 grocery_env
 
-Yolo_Custom_Training/dataset
+Yolo_Custom_Training/datasets
 Tracking/__pycache__/
+
+# ignore youtube videos
+*.mp4

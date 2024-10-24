@@ -1,14 +1,14 @@
 import os
 from typing import List
 import cv2
-
 import numpy as np
 import requests
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
+import yt_dlp as youtube_dl
 
-# model_name = 'best.pt'
-model_name = 'yolo11s.pt'
+model_name = 'best.pt'
+# model_name = 'Yolo_Custom_Training/runs/detect/train8/weights/best.pt'
 # Download the YOLO model
 if not os.path.isfile(model_name):
     print(f'{model_name} does not exist. Downloading...')
@@ -26,8 +26,29 @@ if not os.path.isfile(model_name):
 # Load the YOLO model
 model: YOLO = YOLO(model_name)
 
+# URL of the YouTube video
+youtube_url = 'https://www.youtube.com/watch/Ie_aQqez9qo'
+video_path = 'downloaded_video.mp4'
+
+# Check if the video already exists
+if not os.path.isfile(video_path):
+    print(f'{video_path} does not exist. Downloading...')
+    
+    # Download the YouTube video using yt-dlp
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': video_path,
+    }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([youtube_url])
+    
+    print(f'Downloaded {video_path}')
+else:
+    print(f'{video_path} already exists.')
+
 # capture video
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(video_path)
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 # Loop through the video frames
@@ -37,7 +58,6 @@ while cap.isOpened():
 
     if success:
         # Run YOLO inference on the frame
-        # results: List[Results] = model(frame)
         results = model.track(frame, show=False, tracker="bytetrack.yaml")  
 
         # Visualize the results on the frame
