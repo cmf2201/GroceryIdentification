@@ -1,0 +1,14 @@
+import os
+import cv2
+
+def verify_dataset(dataset_path):
+    for root, _, files in os.walk(dataset_path):
+        for file in files:
+            if file.endswith('.jpg') or file.endswith('.png'):
+                img_path = os.path.join(root, file)
+                img = cv2.imread(img_path)
+                if img is None:
+                    print(f"Corrupt image: {img_path}")
+
+verify_dataset(r'c:/Users/brent/.cache/kagglehub/datasets/kvnpatel/fruits-vegetable-detection-for-yolov4/yolo_dataset/train/images')
+verify_dataset(r'c:/Users/brent/.cache/kagglehub/datasets/kvnpatel/fruits-vegetable-detection-for-yolov4/yolo_dataset/val/images')

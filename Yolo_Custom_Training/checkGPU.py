@@ -1,6 +1,8 @@
 import torch
+import torchvision
 
 print("Torch version:", torch.__version__)
+print("Torchvision version:", torchvision.__version__)
 print("Is CUDA available?", torch.cuda.is_available())
 if torch.cuda.is_available():
     print("Current device:", torch.cuda.current_device())

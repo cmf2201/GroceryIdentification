@@ -6,5 +6,7 @@ datasets/
 .vscode/
 # Ignore virtual environment folder
 .venv/
+grocery_env
 
+Yolo_Custom_Training/dataset
 Tracking/__pycache__/
