@@ -1,5 +1,5 @@
 # GroceryIdentification
-This project was completed for CS534: Introduction to 
+This project was completed for CS534: Introduction to Artifical Intelligence (Fall 2024)
 ![Flowchart](flowchart.png)
 ## **Overview**
 This system allows users to create, modify, and manage a grocery list dynamically through a front-end application. Using an AI assistant integrated with YOLOv11 for object detection and ByteTrack for object tracking, the application intelligently manages and tracks items in real-time based on the user’s shopping needs.
