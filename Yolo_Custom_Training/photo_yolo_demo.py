@@ -45,8 +45,8 @@ if not os.path.isfile(model_name):
 # Load the YOLO model
 model: YOLO = YOLO(model_name)
 
-# Path to the downloaded video
-photo_name = input("Enter the name of the photo file: ").strip()
+# Path to the downloaded photo
+photo_name = input("Enter the name of the photo file (default is example_photo.png): ").strip()
 if not photo_name:
     photo_name = 'example_photo.png'
 photo_path = find_file(os.getcwd(), photo_name)
@@ -76,9 +76,6 @@ while True:
 
         # Display the annotated frame
         cv2.imshow("YOLO Inference", annotated_frame)
-
-        # Add information to quit to frame
-        cv2.putText(annotated_frame, text="Press 'q' to quit", org=(0, frame.shape[0] - 10), fontFace=font, fontScale=0.5, color=(0, 0, 255))
 
         # Break stop displaying image if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
