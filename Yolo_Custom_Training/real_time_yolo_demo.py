@@ -1,7 +1,13 @@
+"""
+This file is used to run a YOLO object detection model in real time on your webcam
+To use this file:
+1. Run the file
+2. Enter the model name (default is 'yolo11s.pt')
+3. The webcam will open and the YOLO model will run on the video frames
+"""
 import os
 from typing import List
 import cv2
-
 import numpy as np
 import requests
 from ultralytics import YOLO

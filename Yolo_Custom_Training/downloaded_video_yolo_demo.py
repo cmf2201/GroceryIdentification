@@ -1,11 +1,19 @@
+"""
+This file is used to run a YOLO object detection model on any given video file
+To use this file:
+1. Run the file
+2. Enter the model name (default is 'yolo11s.pt')
+3. Enter the name of the video file
+4. The video will open and the YOLO model will run on the video frames
+"""
 import os
 from typing import List
 import cv2
-
 import numpy as np
 import requests
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
+
 
 model_name = input("Enter the model name (default is 'yolo11s.pt'): ").strip()
 if not model_name:

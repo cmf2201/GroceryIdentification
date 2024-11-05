@@ -1,3 +1,11 @@
+"""
+This file is used to train a custom YOLO model on your dataset
+To use this file:
+1. Modify the config_path variable to point to your data.yaml file
+2. Modify the yolo11s.pt to the model you want to use
+3. Modify training parameters as needed
+3. Run the file and wait for the training to complete
+"""
 import os
 from ultralytics import YOLO
 
