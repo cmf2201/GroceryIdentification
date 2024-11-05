@@ -1,10 +1,6 @@
-# Ignore datasets folder to not have too much size in the repo
-datasets/
 # ignore all .pt files of pre trained models
-*.pt
-# Ignore and delete vscode
+.pt
+# Ignore vscode
 .vscode/
 # Ignore virtual environment folder
 .venv/
-
-Tracking/__pycache__/

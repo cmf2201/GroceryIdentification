@@ -7,8 +7,9 @@ import requests
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-# model_name = 'best.pt'
-model_name = 'yolo11n.pt'
+model_name = input("Enter the model name (default is 'yolo11s.pt'): ").strip()
+if not model_name:
+    model_name = 'yolo11s.pt'
 # Download the YOLO model
 if not os.path.isfile(model_name):
     print(f'{model_name} does not exist. Downloading...')

@@ -1,0 +1,5 @@
+TODO Add Items**: Ensures items from YOLO-trained classes can be added or incremented in quantity.
+TODO Modify Quantities**: Allows users to adjust the quantity of any existing item.
+TODO Remove Items**: Deletes unnecessary or incorrect entries from the list.
+TODO List Status Check**: Displays the current list status, showing all items and their quantities.
+TODO Alerts**: Notifies users of discrepancies, such as missing essential items or differences between AI recommendations and user inputs.

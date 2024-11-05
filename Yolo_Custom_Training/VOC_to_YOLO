@@ -1,3 +1,0 @@
-from pylabel import importer
-dataset = importer.ImportVOC(path="PATH TO ANNOTATIONS")
-dataset.export.ExportToYoloV5()

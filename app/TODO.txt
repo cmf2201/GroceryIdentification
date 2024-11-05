@@ -1,0 +1,16 @@
+User-Friendly Front-End use cases:
+Create list         TODO
+Add items           TODO
+Add quantities      TODO
+Modify items        TODO
+Modify quantities   TODO
+Remove Items        TODO
+Check off items     TODO
+Uncheck off items   TODO
+
+Description:
+
+Upon launching the application, users create an initial grocery list by selecting items from a predefined set. 
+This list forms the foundation for the assistant to understand user requirements and adapt to real-time changes.
+Users can modify the grocery list at any time during their shopping session. They can add new items, adjust quantities, and remove unnecessary entries. 
+Additionally, users can override the assistant’s suggestions, maintaining full control over their shopping experience.
