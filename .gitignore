@@ -1,5 +1,6 @@
-# ignore all .pt files of pre trained models
-.pt
+# ignore all .pt files of pre trained models but include custom trained weights
+*.pt
+!Yolo_Custom_training/**/**/*.pt
 # Ignore vscode
 .vscode/
 # Ignore virtual environment folder

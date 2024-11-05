@@ -11,6 +11,15 @@ model_name = input("Enter the model name (default is 'yolo11s.pt'): ").strip()
 if not model_name:
     model_name = 'yolo11s.pt'
 # Download the YOLO model
+def find_model_file(directory: str, model_name: str) -> str:
+    for root, _, files in os.walk(directory):
+        if model_name in files:
+            return os.path.join(root, model_name)
+    return ""
+
+model_path = find_model_file(os.getcwd(), model_name)
+if model_path:
+    model_name = model_path
 if not os.path.isfile(model_name):
     print(f'{model_name} does not exist. Downloading...')
     download_url = 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt'
