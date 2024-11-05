@@ -1,10 +1,10 @@
 """
-This file is used to run a YOLO object detection model on any given video file
+This file is used to run a YOLO object detection model on any given .png photo file
 To use this file:
 1. Run the file
 2. Enter the model name (default is 'yolo11s.pt')
-3. Enter the name of the video file
-4. The video will open and the YOLO model will run on the video frames
+3. Enter the name of the ohoto file
+4. The photo will open and the YOLO model will run on the photo
 """
 import os
 from typing import List
@@ -46,26 +46,24 @@ if not os.path.isfile(model_name):
 model: YOLO = YOLO(model_name)
 
 # Path to the downloaded video
-video_name = input("Enter the name of the video file: ").strip()
-if not video_name:
-    video_name = 'example_video.mp4'
-video_path = find_file(os.getcwd(), video_name)
-if video_path:
-    video_name = video_path
-    print(f"Absolute model weights path: {model_name}")
-if not os.path.isfile(video_path):
-    print(f"Could not find video: {video_path}")
+photo_name = input("Enter the name of the photo file: ").strip()
+if not photo_name:
+    photo_name = 'example_photo.png'
+photo_path = find_file(os.getcwd(), photo_name)
+if photo_path:
+    photo_name = photo_path
+    print(f"Absolute photo path: {photo_name}")
+if not os.path.isfile(photo_path):
+    print(f"Could not find photo: {photo_path}")
     exit(1)
 
 # capture video
-cap = cv2.VideoCapture(video_path)
+cap = cv2.VideoCapture(photo_path)
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-# Loop through the video frames
-while cap.isOpened():
-    # Read a frame from the video
-    success, frame = cap.read()
-
+# Read a frame from photo
+success, frame = cap.read()
+while True:
     if success:
         # Run YOLO inference on the frame
         results: List[Results] = model(frame)
@@ -82,13 +80,9 @@ while cap.isOpened():
         # Add information to quit to frame
         cv2.putText(annotated_frame, text="Press 'q' to quit", org=(0, frame.shape[0] - 10), fontFace=font, fontScale=0.5, color=(0, 0, 255))
 
-        # Break the loop if 'q' is pressed
+        # Break stop displaying image if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
+            # Release the video capture object and close the display window
+            cap.release()
+            cv2.destroyAllWindows()
             break
-    else:
-        # Break the loop if the end of the video is reached
-        break
-
-# Release the video capture object and close the display window
-cap.release()
-cv2.destroyAllWindows()
