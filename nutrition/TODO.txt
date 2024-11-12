@@ -1,2 +1,0 @@
-TODO take input as a class from YOLO classes
-TODO return some data about said class
