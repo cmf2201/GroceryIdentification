@@ -27,18 +27,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(pageController)
         driver.setLayout(layout)
 
-# You need one (and only one) QApplication instance per application.
-# Pass in sys.argv to allow command line arguments for your app.
-# If you know you won't use command line arguments QApplication([]) works too.
+#Pass in sys.argv to allow command line arguments
+#QApplication([]) works with no command line
 app = QApplication(sys.argv)
 
 # Create a Qt widget, which will be our window.
 window = MainWindow()
-window.show()  # IMPORTANT!!!!! Windows are hidden by default.
+window.show()  #Windows are hidden by default
 
-# Start the event loop.
+# Start application loop.
 app.exec()
-
-
-# Your application won't reach here until you exit and the event
-# loop has stopped.
