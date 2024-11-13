@@ -86,7 +86,7 @@ class HomePage(QWidget):
         #Make picture
         picture = QLabel()
         picture.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pictureMap = QPixmap("C:/Users/ellas/OneDrive/Desktop/AI/GroceryIdentification/UI/Groceries.png")
+        pictureMap = QPixmap("GroceryIdentification/app/Groceries.png")
         picture.setPixmap(pictureMap)
         picture.setScaledContents
         picture.setMaximumSize(360,360)
@@ -209,6 +209,7 @@ class ShoppingListPage(QWidget):
         contents.setWidget(containerWidget)
         shoppingListContents = QVBoxLayout()
         shoppingListContents.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        shoppingListContents.setSpacing(20)
         #Initialize basketItem instance
         #Add to shopingListContents
 
@@ -221,14 +222,14 @@ class ShoppingListPage(QWidget):
         # shoppingListContents.addWidget(contentHolder)
 
         
-        item = BasketItem("apple", "granny smith", 4, self)
-        item2 = BasketItem("apple", "mcintosh", 2, self)
-        item3 = BasketItem("apple", "honeycrisp", 6, self)
-        item4 = BasketItem("apple", "fuji", 1, self)
-        item5 = BasketItem("apple", "gala", 2, self)
-        item6 = BasketItem("apple", "golden delicious", 1, self)
-        item7 = BasketItem("banana", "", 3, self)
-        item8 = BasketItem("banana", "frozen", 1, self)
+        item = BasketItem("granny smith", 4, self)
+        item2 = BasketItem("mcintosh", 2, self)
+        item3 = BasketItem("honeycrisp", 6, self)
+        item4 = BasketItem("fuji", 1, self)
+        item5 = BasketItem("gala", 2, self)
+        item6 = BasketItem("golden delicious", 1, self)
+        item7 = BasketItem("banana", 3, self)
+        item8 = BasketItem("frozen banana", 1, self)
         shoppingListContents.addWidget(item)
         shoppingListContents.addWidget(item2)
         shoppingListContents.addWidget(item3)
@@ -253,7 +254,7 @@ class ShoppingListPage(QWidget):
 
 
 class BasketItem(QWidget):
-    def __init__(self, itemName, itemSubclass, quantity, parent=None):
+    def __init__(self, itemName, quantity, itemSubclass = None, parent=None):
         super().__init__()
         self.parent = parent
         self.itemName = itemName
@@ -264,9 +265,11 @@ class BasketItem(QWidget):
     def initialize(self):
         self.setFixedSize(320,100)
         self.setStyleSheet("""
+                    BasketItem{
                         background-color: #90CF8E;
                         border: 5px solid #EFFDEE;
                         border-radius: 20px;
+                        }
                         """)
 
         coreLayout = QHBoxLayout(self)
@@ -274,7 +277,7 @@ class BasketItem(QWidget):
         
         placeholderImg = QLabel()
         placeholderImg.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        placeholderMap = QPixmap("C:/Users/ellas/OneDrive/Desktop/AI/GroceryIdentification/UI/Groceries.png")
+        placeholderMap = QPixmap("GroceryIdentification/app/Groceries.png")
         placeholderImg.setPixmap(placeholderMap)
         placeholderImg.setScaledContents
         placeholderImg.setMaximumSize(80,80)
@@ -284,38 +287,67 @@ class BasketItem(QWidget):
         internalInfo = QVBoxLayout()
         internalInfo.setContentsMargins(2,2,2,5)
 
+        #Do item name and quantity
         name = QLabel(self.itemName)
-        name.setStyleSheet("""""")
-        name.setFont(QFont("Georgia",16))
-        name.setAlignment(Qt.AlignmentFlag.AlignTop)
+        name.setStyleSheet("""
+            QLabel{
+                background-color: #E4FDE1;
+                border: 5px solid #EFFDEE;
+                border-radius: 20px;
+                font: 12pt 'Georgia';
+                padding: 5px 5px 5px 5px;
+            }""")
+        name.setFixedSize(170,50)
+        name.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        # itemHeader.addWidget(name)
         internalInfo.addWidget(name)
 
-        if(self.itemSubclass != "" and self.itemSubclass is not None):
-            itemDescription = QLabel(self.itemSubclass)
-            itemDescription.setStyleSheet("""
-                font: 10pt 'Georgia';
-                text-align: center;""")
-            # itemDescription.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTrailing)
-            internalInfo.addWidget(itemDescription)
+        #Sub-section
+        quantity = QLabel(self.quantity)
+        quantity.setStyleSheet("""
+            QLabel{
+                background-color: #E4FDE1;
+                border: 5px solid #EFFDEE;
+                border-radius: 10px;
+                font: 12pt 'Georgia';
+            }""")
+        quantity.setFixedSize(30,30)
+        quantity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        internalInfo.addWidget(quantity)
+        # if(self.itemSubclass != "" and self.itemSubclass is not None):
+        #     itemDescription = QLabel(self.itemSubclass)
+        #     itemDescription.setStyleSheet("""
+        #         font: 10pt 'Georgia';
+        #         text-align: center;""")
+        #     itemDescription.setFixedSize(120,50)
+        #     internalInfo.addWidget(itemDescription)
 
         coreLayout.addLayout(internalInfo)
 
-        quantity = QLabel(self.quantity)
-        quantity.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        quantity.setStyleSheet("""
-            font: 16pt 'Georgia';
-            padding: 0px 5px 5px 0px;
-            text-align: 'center';""")
-        quantity.setFixedSize(50,50)
-        quantity.setAlignment(Qt.AlignmentFlag.AlignTop)
-        coreLayout.addWidget(quantity)
 
+        #Handle edit and delete buttons
+        buttons = QVBoxLayout()
+        buttons.setAlignment(Qt.AlignmentFlag.AlignCenter)
         editButton = QPushButton(self)
-        editButton.setIcon(QIcon("C:/Users/ellas/OneDrive/Desktop/AI/GroceryIdentification/UI/edit-icon.png"))
-        editButton.setIconSize(QSize(30,30))
+        editButton.setIcon(QIcon("GroceryIdentification/app/edit-icon.png"))
+        editButton.setIconSize(QSize(25,25))
         editButton.setStyleSheet("""""")
-        editButton.setFixedSize(50,50)
-        coreLayout.addWidget(editButton)
+        editButton.setFixedSize(45,45)
+        buttons.addWidget(editButton)
+
+        #Add delete button for item
+        deleteButton = QPushButton(self)
+        deleteButton.setIcon(QIcon("GroceryIdentification/app/trash-icon.png"))
+        deleteButton.setIconSize(QSize(25,25))
+        deleteButton.setStyleSheet("""""")
+        deleteButton.setFixedSize(45,45)
+        deleteButton.clicked.connect(self.deleteLater)
+        buttons.addWidget(deleteButton)
+        coreLayout.addLayout(buttons)
 
 
         self.setLayout(coreLayout)
+
+#Should probably make confirmation popup
+    def deleteItem(self):
+        self.deleteLater()
