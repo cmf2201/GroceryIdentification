@@ -1,12 +1,15 @@
 import cv2
 import json
 import os
+import numpy as np
 
 drawing = False  # true if mouse is pressed
 rectangle_type = "entry"
 rectangle_color = (0, 255, 0)
 polygons = {'entry': [], 'exit': []}
+current_polygon = []
 ix, iy = -1, -1
+close_threshold = 10  # pixels
 
 # function for finding files
 def find_file(directory: str, file_name: str) -> str:
@@ -16,34 +19,38 @@ def find_file(directory: str, file_name: str) -> str:
     return ""
 
 # mouse callback function
-def draw_rectangle(event, x, y, flags, param):
-    global ix, iy, drawing, img, original_img, rectangle_color, rectangle_type
+def draw_polygon(event, x, y, flags, param):
+    global ix, iy, drawing, img, original_img, rectangle_color, rectangle_type, current_polygon
     if rectangle_type == "entry":
         rectangle_color = (0, 255, 0)
     else:
         rectangle_color = (0, 0, 255)
+    
     if event == cv2.EVENT_LBUTTONDOWN:
-        drawing = True
-        ix, iy = x, y
-
-    elif event == cv2.EVENT_MOUSEMOVE:
-        if drawing:
-            img = original_img.copy()
-            cv2.rectangle(img, (ix, iy), (x, y), rectangle_color, 1)
-            cv2.imshow("image", img)
-
-    elif event == cv2.EVENT_LBUTTONUP:
-        drawing = False
-        # Record rectangle
-        if rectangle_type == "entry":
-            polygons['entry'].append((ix, iy, x, y))
+        if not drawing:
+            drawing = True
+            current_polygon = [(x, y)]
         else:
-            polygons['exit'].append((ix, iy, x, y))
+            # Check if the new point is close to the first point to close the polygon
+            if np.linalg.norm(np.array(current_polygon[0]) - np.array((x, y))) < close_threshold:
+                current_polygon.append(current_polygon[0])
+                if rectangle_type == "entry":
+                    polygons['entry'].append(current_polygon)
+                else:
+                    polygons['exit'].append(current_polygon)
+                drawing = False
+                current_polygon = []
+            else:
+                current_polygon.append((x, y))
+    
+    if drawing:
         img = original_img.copy()
+        if len(current_polygon) > 1:
+            cv2.polylines(img, [np.array(current_polygon, np.int32).reshape((-1, 1, 2))], isClosed=False, color=rectangle_color, thickness=2)
         for polygon in polygons['entry']:
-            cv2.rectangle(img, polygon[:2], polygon[2:], (0, 255, 0), 5)
+            cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
         for polygon in polygons['exit']:
-            cv2.rectangle(img, polygon[:2], polygon[2:], (0, 0, 255), 5)
+            cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 0, 255), thickness=5)
         cv2.imshow("image", img)
 
 # ask user if they should set up on webcam or a photo
@@ -60,7 +67,7 @@ if setup_type == 'photo':
     # Path to the downloaded photo
     photo_name = input("Enter the name of the photo file (default is example_photo.png): ").strip()
     if not photo_name:
-        photo_name = 'example_photo.png'
+        photo_name = 'example_grocery.jpg'
     photo_path = find_file(os.getcwd(), photo_name)
     if photo_path:
         photo_name = photo_path
@@ -81,7 +88,7 @@ if setup_type == 'webcam':
 font = cv2.FONT_HERSHEY_SIMPLEX
 img = original_img.copy()
 cv2.namedWindow("image")
-cv2.setMouseCallback("image", draw_rectangle)
+cv2.setMouseCallback("image", draw_polygon)
 # get old polygons from file
 try:
     with open('polygons.json', 'r') as f:
@@ -102,9 +109,9 @@ while True:
     img = original_img.copy()
     # display polygons
     for polygon in polygons['entry']:
-        cv2.rectangle(img, polygon[:2], polygon[2:], (0, 255, 0), 5)
+        cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
     for polygon in polygons['exit']:
-        cv2.rectangle(img, polygon[:2], polygon[2:], (0, 0, 255), 5)
+        cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 0, 255), thickness=5)
         
     # Add information to quit to frame
     cv2.putText(img, text="Press 'q' to quit", org=(0, img.shape[0] - 10), fontFace=font, fontScale=0.5, color=(0, 0, 255))

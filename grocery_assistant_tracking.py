@@ -3,12 +3,13 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import os
+os.environ['YOLO_VERBOSE'] = 'False'
 
 # Load the YOLO11 model
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo11n.pt", verbose=True)
 # track apples, bananas, oranges, carrot, broccoli, donut, pizza, hot dog, sandwich, cake
-TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
-
+# TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
+TRACKED_CLASSES = [0, 1]
 # Ask user if it should use a video file or webcam
 print("Would you like to track on webcam or video file?")
 while True:
