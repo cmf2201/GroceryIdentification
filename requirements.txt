@@ -1,12 +1,9 @@
 numpy==1.24.3
-opencv_python==4.9.0.80
 opencv_python==4.10.0.84
 opencv_python_headless==4.10.0.84
 PyQt6==6.7.1
 Requests==2.32.3
 roboflow==0.1.1
 Shapely==2.0.6
-torch==2.0.1
 torch==2.4.1
-ultralytics==8.3.7
 ultralytics==8.3.27
