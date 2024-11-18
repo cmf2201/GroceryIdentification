@@ -86,7 +86,7 @@ class HomePage(QWidget):
         #Make picture
         picture = QLabel()
         picture.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pictureMap = QPixmap("GroceryIdentification/app/Groceries.png")
+        pictureMap = QPixmap("app/images/Groceries.PNG")
         picture.setPixmap(pictureMap)
         picture.setScaledContents
         picture.setMaximumSize(360,360)
@@ -267,22 +267,22 @@ class BasketItem(QWidget):
         self.setStyleSheet("""
                     BasketItem{
                         background-color: #90CF8E;
-                        border: 5px solid #EFFDEE;
+                        border: 5px solid #000000;
                         border-radius: 20px;
                         }
                         """)
 
         coreLayout = QHBoxLayout(self)
-        coreLayout.setContentsMargins(5,2,2,5)
+        coreLayout.setContentsMargins(10,2,2,5)
         
-        placeholderImg = QLabel()
-        placeholderImg.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        placeholderMap = QPixmap("GroceryIdentification/app/Groceries.png")
-        placeholderImg.setPixmap(placeholderMap)
-        placeholderImg.setScaledContents
-        placeholderImg.setMaximumSize(80,80)
-        placeholderImg.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        coreLayout.addWidget(placeholderImg) 
+        # placeholderImg = QLabel()
+        # placeholderImg.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # placeholderMap = QPixmap("GroceryIdentification/app/Groceries.png")
+        # placeholderImg.setPixmap(placeholderMap)
+        # placeholderImg.setScaledContents
+        # placeholderImg.setMaximumSize(80,80)
+        # placeholderImg.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        # coreLayout.addWidget(placeholderImg) 
         
         internalInfo = QVBoxLayout()
         internalInfo.setContentsMargins(2,2,2,5)
@@ -292,12 +292,12 @@ class BasketItem(QWidget):
         name.setStyleSheet("""
             QLabel{
                 background-color: #E4FDE1;
-                border: 5px solid #EFFDEE;
+                border: 2px solid #000000;
                 border-radius: 20px;
                 font: 12pt 'Georgia';
                 padding: 5px 5px 5px 5px;
             }""")
-        name.setFixedSize(170,50)
+        name.setFixedSize(250,50)
         name.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         # itemHeader.addWidget(name)
         internalInfo.addWidget(name)
@@ -307,7 +307,7 @@ class BasketItem(QWidget):
         quantity.setStyleSheet("""
             QLabel{
                 background-color: #E4FDE1;
-                border: 5px solid #EFFDEE;
+                border: 2px solid #000000;
                 border-radius: 10px;
                 font: 12pt 'Georgia';
             }""")
@@ -329,17 +329,31 @@ class BasketItem(QWidget):
         buttons = QVBoxLayout()
         buttons.setAlignment(Qt.AlignmentFlag.AlignCenter)
         editButton = QPushButton(self)
-        editButton.setIcon(QIcon("GroceryIdentification/app/edit-icon.png"))
+        editButton.setIcon(QIcon("app/images/edit-icon.png"))
         editButton.setIconSize(QSize(25,25))
-        editButton.setStyleSheet("""""")
+        editButton.setStyleSheet("""
+            QPushButton {
+                background-color: #E4FDE1;
+                border: 2px solid #000000;
+                color: black;
+                border-radius: 8;
+                                }
+                                """)
         editButton.setFixedSize(45,45)
         buttons.addWidget(editButton)
 
         #Add delete button for item
         deleteButton = QPushButton(self)
-        deleteButton.setIcon(QIcon("GroceryIdentification/app/trash-icon.png"))
+        deleteButton.setIcon(QIcon("app/images/trash-icon.png"))
         deleteButton.setIconSize(QSize(25,25))
-        deleteButton.setStyleSheet("""""")
+        deleteButton.setStyleSheet("""
+            QPushButton {
+                background-color: #E4FDE1;
+                border: 2px solid #000000;
+                color: black;
+                border-radius: 8;
+                                }
+                                """)
         deleteButton.setFixedSize(45,45)
         deleteButton.clicked.connect(self.deleteLater)
         buttons.addWidget(deleteButton)
