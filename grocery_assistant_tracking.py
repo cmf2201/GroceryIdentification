@@ -3,12 +3,18 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import os
+import json
+from shapely.geometry import Polygon, Point
+from raycasting import is_point_inside_polygon
 
+os.environ['YOLO_VERBOSE'] = 'False'
+model_path = r'yolo_custom_training\runs\trainv2\weights\best.pt'
+print(model_path)
 # Load the YOLO11 model
-model = YOLO("yolo11n.pt")
+model = YOLO(model_path, verbose=True)
 # track apples, bananas, oranges, carrot, broccoli, donut, pizza, hot dog, sandwich, cake
-TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
-
+# TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
+TRACKED_CLASSES = [0, 1]
 # Ask user if it should use a video file or webcam
 print("Would you like to track on webcam or video file?")
 while True:
@@ -48,28 +54,46 @@ if setup_type == 'webcam':
 # Store the track history
 track_history = defaultdict(lambda: [])
 
+# Load polygons from polygons.json
+try:
+    with open('polygons.json', 'r') as f:
+        polygons = json.load(f)
+        print("Polygons loaded from polygons.json")
+        # print(polygons)
+except FileNotFoundError:
+    print("polygons.json not found, starting with empty polygons")
+
 # Loop through the video frames
 while cap.isOpened():
     # Read a frame from the video
     success, frame = cap.read()
 
     if success:
+        # record cart item counts
+        cart_items = defaultdict(int)
+        # display polygon
+        for polygon in polygons['cart']:
+            cv2.polylines(frame, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
         # Run YOLO11 tracking on the frame, persisting tracks between frames
         results = model.track(frame, persist=True, classes=TRACKED_CLASSES, tracker="bytetrack.yaml")
-        # Get the boxes and track IDs
+        # Get the boxes, track IDs, and class IDs
         boxes = results[0].boxes.xywh.cpu()
         track_ids = results[0].boxes.id
+        class_ids = results[0].boxes.cls
         if track_ids is not None:
             track_ids = track_ids.int().cpu().tolist()
         else:
             track_ids = []
-            
+        if class_ids is not None:
+            class_ids = class_ids.int().cpu().tolist()
+        else:
+            class_ids = []
             
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
         # Plot the tracks
-        for box, track_id in zip(boxes, track_ids):
+        for box, track_id, class_id in zip(boxes, track_ids, class_ids):
             x, y, w, h = box
             track = track_history[track_id]
             track.append((float(x), float(y)))  # x, y center point
@@ -80,8 +104,29 @@ while cap.isOpened():
             points = np.array(track, dtype=np.int32).reshape((-1, 1, 2))
             cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=2)
 
+            # Calculate the bounding box center
+            bbox_center = (x, y)
+
+            # Check if the bounding box center is inside any polygon
+            in_cart = False
+            for polygon in polygons['cart']:
+                in_cart = in_cart or is_point_inside_polygon(bbox_center, polygon)
+            
+            if in_cart:
+                # print("track was in cart!", track_id)
+                cart_items[class_id] += 1
+                    
+
         # Display the annotated frame
         cv2.imshow("YOLO11 Tracking", annotated_frame)
+        
+        # Clear the terminal screen
+        os.system('cls' if os.name == 'nt' else 'clear')
+        
+        # Print the cart items in a readable manner
+        print("Cart items:")
+        for class_id, count in cart_items.items():
+            print(f"Class ID {class_id}: {count} items")
         
         # Add information to quit to frame
         cv2.putText(annotated_frame, text="Press 'q' to quit", org=(0, frame.shape[0] - 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(0, 0, 255))

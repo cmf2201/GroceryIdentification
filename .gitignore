@@ -5,3 +5,5 @@
 .vscode/
 # Ignore virtual environment folder
 .venv/
+# ignore all pyache
+__pycache__/

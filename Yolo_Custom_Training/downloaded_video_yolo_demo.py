@@ -52,7 +52,7 @@ if not video_name:
 video_path = find_file(os.getcwd(), video_name)
 if video_path:
     video_name = video_path
-    print(f"Absolute model weights path: {model_name}")
+    print(f"Absolute video path: {video_path}")
 if not os.path.isfile(video_path):
     print(f"Could not find video: {video_path}")
     exit(1)
