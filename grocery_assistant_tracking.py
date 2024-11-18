@@ -6,9 +6,11 @@ import os
 import json
 from shapely.geometry import Polygon, Point
 from raycasting import is_point_inside_polygon
+from list_manager.list_manager import ListManager
 
 os.environ['YOLO_VERBOSE'] = 'False'
 model_path = r'yolo_custom_training\runs\trainv2\weights\best.pt'
+# model_path = 'yolo11s.pt'
 print(model_path)
 # Load the YOLO11 model
 model = YOLO(model_path, verbose=True)
@@ -69,8 +71,10 @@ while cap.isOpened():
     success, frame = cap.read()
 
     if success:
-        # record cart item counts
-        cart_items = defaultdict(int)
+        # initialize the list manager with no items
+        list_manager = ListManager([1, 1, 0, 0, 0])
+        class_names = {0: 'apples', 1: 'bananas', 2: 'carrots', 3: 'onions', 4: 'tomatoes'}
+        current_tracks = []
         # display polygon
         for polygon in polygons['cart']:
             cv2.polylines(frame, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
@@ -111,10 +115,13 @@ while cap.isOpened():
             in_cart = False
             for polygon in polygons['cart']:
                 in_cart = in_cart or is_point_inside_polygon(bbox_center, polygon)
+                
+            if in_cart and (track_id not in current_tracks):
+                    print("Adding item to cart: ", class_names[class_id])
+                    list_manager.add_item_to_cart(class_names[class_id])
             
-            if in_cart:
-                # print("track was in cart!", track_id)
-                cart_items[class_id] += 1
+            if track_id not in current_tracks:
+                current_tracks.append(track_id)
                     
 
         # Display the annotated frame
@@ -123,10 +130,8 @@ while cap.isOpened():
         # Clear the terminal screen
         os.system('cls' if os.name == 'nt' else 'clear')
         
-        # Print the cart items in a readable manner
-        print("Cart items:")
-        for class_id, count in cart_items.items():
-            print(f"Class ID {class_id}: {count} items")
+        # Print the cart items from listmanager
+        list_manager.list_status()
         
         # Add information to quit to frame
         cv2.putText(annotated_frame, text="Press 'q' to quit", org=(0, frame.shape[0] - 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(0, 0, 255))
