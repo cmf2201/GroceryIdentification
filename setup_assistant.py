@@ -4,9 +4,9 @@ import os
 import numpy as np
 
 drawing = False  # true if mouse is pressed
-rectangle_type = "entry"
+rectangle_type = "cart"
 rectangle_color = (0, 255, 0)
-polygons = {'entry': [], 'exit': []}
+polygons = {'cart': []}
 current_polygon = []
 ix, iy = -1, -1
 close_threshold = 10  # pixels
@@ -21,7 +21,7 @@ def find_file(directory: str, file_name: str) -> str:
 # mouse callback function
 def draw_polygon(event, x, y, flags, param):
     global ix, iy, drawing, img, original_img, rectangle_color, rectangle_type, current_polygon
-    if rectangle_type == "entry":
+    if rectangle_type == "cart":
         rectangle_color = (0, 255, 0)
     else:
         rectangle_color = (0, 0, 255)
@@ -34,10 +34,7 @@ def draw_polygon(event, x, y, flags, param):
             # Check if the new point is close to the first point to close the polygon
             if np.linalg.norm(np.array(current_polygon[0]) - np.array((x, y))) < close_threshold:
                 current_polygon.append(current_polygon[0])
-                if rectangle_type == "entry":
-                    polygons['entry'].append(current_polygon)
-                else:
-                    polygons['exit'].append(current_polygon)
+                polygons['cart'].append(current_polygon)
                 drawing = False
                 current_polygon = []
             else:
@@ -47,20 +44,18 @@ def draw_polygon(event, x, y, flags, param):
         img = original_img.copy()
         if len(current_polygon) > 1:
             cv2.polylines(img, [np.array(current_polygon, np.int32).reshape((-1, 1, 2))], isClosed=False, color=rectangle_color, thickness=2)
-        for polygon in polygons['entry']:
+        for polygon in polygons['cart']:
             cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
-        for polygon in polygons['exit']:
-            cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 0, 255), thickness=5)
         cv2.imshow("image", img)
 
 # ask user if they should set up on webcam or a photo
-print("Would you like to set up on a webcam or a photo?")
+print("Would you like to set up on a webcam or a photo or a frame?")
 while True:
-    setup_type = input("Enter 'webcam' or 'photo': ").strip().lower()
-    if setup_type in ['webcam', 'photo']:
+    setup_type = input("Enter 'webcam' or 'photo' or 'frame': ").strip().lower()
+    if setup_type in ['webcam', 'photo', 'frame']:
         break
     else:
-        print("Invalid input. Please enter 'webcam' or 'photo'")
+        print("Invalid input. Please enter 'webcam' or 'photo' or 'frame'")
 
 # if setup is photo, ask for photo path
 if setup_type == 'photo':
@@ -84,6 +79,23 @@ if setup_type == 'webcam':
     cap = cv2.VideoCapture(0)
     ret, original_img = cap.read()
     cap.release()
+
+if setup_type == 'frame':
+    # Path to the downloaded video
+    video_name = input("Enter the name of the video file (default is example_video.mp4): ").strip()
+    if not video_name:
+        video_name = 'example_video.mp4'
+    video_path = find_file(os.getcwd(), video_name)
+    if video_path:
+        video_name = video_path
+        print(f"Absolute video path: {video_name}")
+        # get video from path
+        cap = cv2.VideoCapture(video_path)
+        ret, original_img = cap.read()
+        cap.release()
+    if not os.path.isfile(video_path):
+        print(f"Could not find video: {video_path}")
+        exit(1)
     
 font = cv2.FONT_HERSHEY_SIMPLEX
 img = original_img.copy()
@@ -98,41 +110,28 @@ except FileNotFoundError:
     print("polygons.json not found, starting with empty polygons")
 # display old polygons
 if old_polygons is not None:  
-    for polygon in old_polygons['entry']:
+    for polygon in old_polygons['cart']:
         # append old polygon to polygons
-        polygons['entry'].append(polygon)
-    for polygon in old_polygons['exit']:
-        # append old polygon to polygons
-        polygons['exit'].append(polygon)
+        polygons['cart'].append(polygon)
 
 while True:
     img = original_img.copy()
     # display polygons
-    for polygon in polygons['entry']:
+    for polygon in polygons['cart']:
         cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
-    for polygon in polygons['exit']:
-        cv2.polylines(img, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 0, 255), thickness=5)
         
     # Add information to quit to frame
     cv2.putText(img, text="Press 'q' to quit", org=(0, img.shape[0] - 10), fontFace=font, fontScale=0.5, color=(0, 0, 255))
     # add information on how to reset frame
     cv2.putText(img, text="Press 'r' to reset polygons", org=(0, img.shape[0] - 30), fontFace=font, fontScale=0.5, color=(0, 0, 255))
     # add information on how to change rectangle type
-    cv2.putText(img, text="Press 'space bar' to change between 'entry' and 'exit' rectangles", org=(0, img.shape[0] - 50), fontFace=font, fontScale=0.5, color=(0, 0, 255))
 
     cv2.imshow("image", img)
     
-    key = cv2.waitKey(1) & 0xFF
-    # wait for space to change rectangle type
-    if key == ord(" "):
-        if rectangle_type == "entry":
-            rectangle_type = "exit"
-        else:
-            rectangle_type = "entry"
-    
+    key = cv2.waitKey(1) & 0xFF    
     # wait for r to reset polygons
     if key == ord("r"):
-        polygons = {'entry': [], 'exit': []}
+        polygons = {'cart': []}
         img = original_img.copy()
     # wait for q to end setup
     if key == ord("q"):

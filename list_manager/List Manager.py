@@ -47,7 +47,7 @@ class ListManager:
                 if item.lower() in detected_set:
                     add_choice = input(f"{item} is detected in your cart but missing from the list. Do you want to add it? (yes/no): ").lower()
                     if add_choice == 'yes':
-                        add_item(item, 1)  # Default quantity will be set to 1 if not specified
+                        self.add_item(item, 1)  # Default quantity will be set to 1 if not specified
 
         # Check if items in shopping list are missing from detected items
         for item in self.shopping_list:
