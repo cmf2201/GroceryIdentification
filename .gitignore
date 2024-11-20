@@ -1,9 +1,13 @@
 # ignore all .pt files of pre trained models but include custom trained weights
 *.pt
 !Yolo_Custom_training/**/**/*.pt
+datasets/
 # Ignore vscode
 .vscode/
 # Ignore virtual environment folder
 .venv/
+venv/
+turLog/
+turRun.sh
 # ignore all pyache
 __pycache__/
