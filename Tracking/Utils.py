@@ -26,13 +26,9 @@ def computeIoU(box1: np.array, box2: np.array):
     """Calcuated the IoU between two detection boxes
 
     Args:
-        box1 (array): Array of box corners from box1 
-        box2 (array): Array of box corners from box2
+        box1 (array): XYWH Array of box corners from box1
+        box2 (array): XYWH Array of box corners from box2
     """
-    # There should be better error handling, but basically we just need to make sure that
-    # each box has four corners.
-    # if box1.shape[0] != 4 or box2.shape[0] != 4:
-    #     raise ValueError('Both boxes must have 4 corners.')
     
     x_left = max(box1[0][0], box2[0][0])
     y_top = max(box1[0][1], box2[0][1])
@@ -54,3 +50,29 @@ def computeIoU(box1: np.array, box2: np.array):
     
     # Calculate IoU
     return intersection_area / union_area
+
+def detectionToMeasurement(detection):
+    state = np.array([
+        detection.x,
+        detection.y,
+        detection.width,
+        detection.height,
+        ]).T
+    return state
+
+def detectionToState(detection):
+    state = np.array([
+        detection.x,
+        detection.y,
+        detection.width,
+        detection.height,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        ]).T
+    return state
