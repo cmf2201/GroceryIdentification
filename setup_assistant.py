@@ -41,7 +41,7 @@ def draw_polygon(event, x, y, flags, param):
                 current_polygon.append((x, y))
     
     if drawing:
-        img = original_img.copy()
+        img = img.copy()
         if len(current_polygon) > 1:
             cv2.polylines(img, [np.array(current_polygon, np.int32).reshape((-1, 1, 2))], isClosed=False, color=rectangle_color, thickness=2)
         for polygon in polygons['cart']:
@@ -97,6 +97,18 @@ if setup_type == 'frame':
         print(f"Could not find video: {video_path}")
         exit(1)
     
+# Get the screen resolution
+screen_width = 1920 
+screen_height = 1080  
+
+# Calculate the scaling factor
+scale_width = screen_width / original_img.shape[1]
+scale_height = (screen_height - 200) / original_img.shape[0]  # Subtract some pixels for the text
+scale = min(scale_width, scale_height)
+
+# Resize the image
+original_img = cv2.resize(original_img, None, fx=scale, fy=scale)
+
 font = cv2.FONT_HERSHEY_SIMPLEX
 img = original_img.copy()
 cv2.namedWindow("image")

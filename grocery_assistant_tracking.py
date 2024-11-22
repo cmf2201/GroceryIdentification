@@ -9,14 +9,14 @@ from raycasting import is_point_inside_polygon
 from list_manager.list_manager import ListManager
 
 os.environ['YOLO_VERBOSE'] = 'False'
-model_path = r'yolo_custom_training\runs\trainv2\weights\best.pt'
-# model_path = 'yolo11s.pt'
+# model_path = r'yolo_custom_training\runs\trainv2\weights\best.pt'
+model_path = 'yolo11s.pt'
 print(model_path)
 # Load the YOLO11 model
 model = YOLO(model_path, verbose=True)
 # track apples, bananas, oranges, carrot, broccoli, donut, pizza, hot dog, sandwich, cake
-# TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
-TRACKED_CLASSES = [0, 1]
+TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
+# TRACKED_CLASSES = [0, 1]
 # Ask user if it should use a video file or webcam
 print("Would you like to track on webcam or video file?")
 while True:
@@ -55,6 +55,8 @@ if setup_type == 'webcam':
 
 # Store the track history
 track_history = defaultdict(lambda: [])
+last_seen = {}
+max_frames_missing = 30  # Number of frames to wait before removing a track
 
 # Load polygons from polygons.json
 try:
@@ -65,21 +67,48 @@ try:
 except FileNotFoundError:
     print("polygons.json not found, starting with empty polygons")
 
+current_tracks = []
+# initialize the list manager with no items
+list_manager = ListManager([1, 1, 0, 0, 0])
+# class_names = {0: 'apples', 1: 'bananas', 2: 'carrots', 3: 'onions', 4: 'tomatoes'}
+class_names = {
+    47: 'apples', 
+    46: 'bananas', 
+    49: 'oranges', 
+    48: 'carrots', 
+    50: 'broccoli', 
+    51: 'donut', 
+    52: 'pizza', 
+    53: 'hot dog', 
+    54: 'sandwich', 
+    55: 'cake'
+}
+
 # Loop through the video frames
+frame_count = 0
 while cap.isOpened():
     # Read a frame from the video
     success, frame = cap.read()
+    if frame is None:
+        break
+    # Get the screen resolution
+    screen_width = 1920 
+    screen_height = 1080  
+
+    # Calculate the scaling factor
+    scale_width = screen_width / frame.shape[1]
+    scale_height = (screen_height - 200) / frame.shape[0]  # Subtract some pixels for the text
+    scale = min(scale_width, scale_height)
+
+    # Resize the image
+    frame = cv2.resize(frame, None, fx=scale, fy=scale)
 
     if success:
-        # initialize the list manager with no items
-        list_manager = ListManager([1, 1, 0, 0, 0])
-        class_names = {0: 'apples', 1: 'bananas', 2: 'carrots', 3: 'onions', 4: 'tomatoes'}
-        current_tracks = []
         # display polygon
         for polygon in polygons['cart']:
             cv2.polylines(frame, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
         # Run YOLO11 tracking on the frame, persisting tracks between frames
-        results = model.track(frame, persist=True, classes=TRACKED_CLASSES, tracker="bytetrack.yaml")
+        results = model.track(frame, persist=True, classes=TRACKED_CLASSES, tracker="bytetrack.yaml", conf=0.35)
         # Get the boxes, track IDs, and class IDs
         boxes = results[0].boxes.xywh.cpu()
         track_ids = results[0].boxes.id
@@ -105,8 +134,8 @@ while cap.isOpened():
                 track.pop(0)
 
             # Draw the tracking lines
-            points = np.array(track, dtype=np.int32).reshape((-1, 1, 2))
-            cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=2)
+            # points = np.array(track, dtype=np.int32).reshape((-1, 1, 2))
+            # cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=2)
 
             # Calculate the bounding box center
             bbox_center = (x, y)
@@ -115,14 +144,26 @@ while cap.isOpened():
             in_cart = False
             for polygon in polygons['cart']:
                 in_cart = in_cart or is_point_inside_polygon(bbox_center, polygon)
-                
+                              
             if in_cart and (track_id not in current_tracks):
                     print("Adding item to cart: ", class_names[class_id])
                     list_manager.add_item_to_cart(class_names[class_id])
             
             if track_id not in current_tracks:
+                # print("adding", track_id, "To current tracks")
                 current_tracks.append(track_id)
-                    
+            
+            last_seen[track_id] = (frame_count, class_id)
+        
+        # Remove tracks that have not been seen for a while
+        for track_id in list(last_seen.keys()):
+            if frame_count - last_seen[track_id][0] > max_frames_missing:
+                class_id = last_seen[track_id][1]
+                if class_id is not None:
+                    print("Removing item from cart: ", class_names[class_id])
+                    list_manager.remove_item_from_cart(class_names[class_id])
+                current_tracks.remove(track_id)
+                del last_seen[track_id]
 
         # Display the annotated frame
         cv2.imshow("YOLO11 Tracking", annotated_frame)
@@ -139,9 +180,7 @@ while cap.isOpened():
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-    else:
-        # Break the loop if the end of the video is reached
-        break
+    frame_count += 1
 
 # Release the video capture object and close the display window
 cap.release()

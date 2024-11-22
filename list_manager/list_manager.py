@@ -6,7 +6,7 @@ class ListManager:
         Args:
             shopping_list_amounts (list[int]): A list of integers representing the amounts of each item in the shopping list.
                 The list should contain exactly 5 elements in the following order:
-                [apples, bananas, carrots, onions, tomatoes]
+                [apples, bananas, carrots, onions, oranges]
 
         Attributes:
             shopping_list (dict): A dictionary with the initial amounts of each item in the shopping list.
@@ -16,12 +16,12 @@ class ListManager:
                               'bananas' : shopping_list_amounts[1],
                               'carrots' : shopping_list_amounts[2],
                               'onions' : shopping_list_amounts[3],
-                              'tomatoes' : shopping_list_amounts[4]}
+                              'oranges' : shopping_list_amounts[4]}
         self.cart_items = {'apples' : 0,
                               'bananas' : 0,
                               'carrots' : 0,
                               'onions' : 0,
-                              'tomatoes' : 0}
+                              'oranges': 0}
     
     def check_item_name(self, item_name: str):
         item_name = item_name.lower()
@@ -72,7 +72,7 @@ class ListManager:
         print("Your cart:")
         for item, quantity in self.cart_items.items():
             print(f"- {quantity} : {item}")
-        if self.shopping_list == self.cart_items:
+        if self.shopping_list == self.cart_items: # TODO REPLACE WITH FUNCTION WITH CONDITIONALS
             print("YOUR LIST IS COMPLETED, CHECK OUT NOW!")
             return True
         else: return False
