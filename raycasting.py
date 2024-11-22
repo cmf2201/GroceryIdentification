@@ -33,16 +33,33 @@ def intersect(ray_origin: np.ndarray, ray_direction: np.ndarray, segment_start: 
         return ray_origin + t1 * ray_direction
     return None
 
-def is_point_inside_polygon(point: np.ndarray, polygon_points: np.ndarray) -> np.ndarray:
-    # init intersections
-    intersections: List[np.ndarray] = []
+# def is_point_inside_polygon(point: np.ndarray, polygon_points: np.ndarray) -> bool:
+#     # init intersections
+#     intersections: List[np.ndarray] = []
     
-    # loop through polygon points to find every intersection
-    for i in range(len(polygon_points)):
-        segment_start = polygon_points[i]
-        segment_end = polygon_points[(i+1) % len(polygon_points)]
-        ray_direction = polygon_points[i] - np.array(point)
-        intersection = intersect(point, ray_direction, segment_start, segment_end)
-        if intersection is not None:
-            intersections.append(intersection)
-    return len(intersections) % 2 == 1
+#     # loop through polygon points to find every intersection
+#     for i in range(len(polygon_points)):
+#         segment_start = polygon_points[i]
+#         segment_end = polygon_points[(i+1) % len(polygon_points)]
+#         ray_direction = polygon_points[i] - np.array(point)
+#         intersection = intersect(point, ray_direction, segment_start, segment_end)
+#         if intersection is not None:
+#             intersections.append(intersection)
+#     return len(intersections) % 2 == 1
+
+from shapely.geometry import Polygon, Point
+
+def is_point_inside_polygon(point: tuple, polygon_points: list) -> bool:
+    """
+    Checks if a point is inside a polygon using the shapely library.
+    
+    Args:
+        point (tuple): The point to check (x, y).
+        polygon_points (list): List of polygon vertices as a list of tuples [(x1, y1), (x2, y2), ...].
+    
+    Returns:
+        bool: True if the point is inside the polygon, False otherwise.
+    """
+    polygon = Polygon(polygon_points)
+    point = Point(point)
+    return polygon.contains(point)
