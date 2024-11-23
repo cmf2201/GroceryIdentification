@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
-from page import Page
+from app.page import Page
 
 
 #Class for main window
