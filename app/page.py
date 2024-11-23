@@ -604,6 +604,7 @@ class editItemPopup(QDialog):
     """Popups exist as temprary module windows"""
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.parent = parent
         #Initiate popup
         self.setStyleSheet("""
             QDialog{ background: #E4FDE1; }""")
