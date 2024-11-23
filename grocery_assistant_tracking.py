@@ -9,14 +9,14 @@ from raycasting import is_point_inside_polygon
 from list_manager.list_manager import ListManager
 
 os.environ['YOLO_VERBOSE'] = 'False'
-# model_path = r'yolo_custom_training\runs\trainv2\weights\best.pt'
+# model_path = r'yolo_custom_training\runs\final_demo\weights\best.pt'
 model_path = 'yolo11s.pt'
 print(model_path)
 # Load the YOLO11 model
 model = YOLO(model_path, verbose=True)
 # track apples, bananas, oranges, carrot, broccoli, donut, pizza, hot dog, sandwich, cake
-TRACKED_CLASSES = [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
-# TRACKED_CLASSES = [0, 1]
+TRACKED_CLASSES = [46, 47, 48, 49, 50, 52, 53, 54, 55, 56]
+# TRACKED_CLASSES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 # Ask user if it should use a video file or webcam
 print("Would you like to track on webcam or video file?")
 while True:
@@ -68,16 +68,15 @@ except FileNotFoundError:
     print("polygons.json not found, starting with empty polygons")
 
 current_tracks = []
-# initialize the list manager with no items
-list_manager = ListManager([1, 1, 0, 0, 0])
-# class_names = {0: 'apples', 1: 'bananas', 2: 'carrots', 3: 'onions', 4: 'tomatoes'}
+# initialize the list manager with shopping list of 2 apples, 1 banana, 1 orange
+list_manager = ListManager([2, 1, 0, 0, 1])
+# class_names = {0: 'apples', 1: 'bananas', 2: 'carrots', 10: 'onions'}
 class_names = {
     47: 'apples', 
     46: 'bananas', 
     49: 'oranges', 
     48: 'carrots', 
     50: 'broccoli', 
-    51: 'donut', 
     52: 'pizza', 
     53: 'hot dog', 
     54: 'sandwich', 
@@ -164,19 +163,27 @@ while cap.isOpened():
                     list_manager.remove_item_from_cart(class_names[class_id])
                 current_tracks.remove(track_id)
                 del last_seen[track_id]
-
-        # Display the annotated frame
-        cv2.imshow("YOLO11 Tracking", annotated_frame)
         
         # Clear the terminal screen
-        os.system('cls' if os.name == 'nt' else 'clear')
+        # os.system('cls' if os.name == 'nt' else 'clear')
         
         # Print the cart items from listmanager
-        list_manager.list_status()
+        cart_items, shopping_list = list_manager.list_status()
+        cv2.putText(annotated_frame, text="Shopping list:", org=(0, 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255))
+        for item, quantity in shopping_list.items():
+            cv2.putText(annotated_frame, text=f"- {quantity} : {item}", org=(0, 30 + 20 * list(shopping_list.keys()).index(item)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255))
+        cv2.putText(annotated_frame, text="Items in Cart:", org=(200, 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255))
+        for item, quantity in cart_items.items():
+            cv2.putText(annotated_frame, text=f"- {quantity} : {item}", org=(200, 30 + 20 * list(cart_items.keys()).index(item)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 255, 255))
+        if shopping_list == cart_items: # TODO REPLACE WITH FUNCTION WITH CONDITIONALS
+            print("YOUR LIST IS COMPLETED, CHECK OUT NOW!")
         
         # Add information to quit to frame
         cv2.putText(annotated_frame, text="Press 'q' to quit", org=(0, frame.shape[0] - 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(0, 0, 255))
 
+        # Display the annotated frame
+        cv2.imshow("YOLO11 Tracking", annotated_frame)
+        
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

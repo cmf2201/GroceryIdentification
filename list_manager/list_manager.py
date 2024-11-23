@@ -65,17 +65,8 @@ class ListManager:
             self.shopping_list[item_name] = new_quantity
             print("modified", item_name, "to have", new_quantity)
 
-    def list_status(self):
-        print("Your shopping list:")
-        for item, quantity in self.shopping_list.items():
-            print(f"- {quantity} : {item}")
-        print("Your cart:")
-        for item, quantity in self.cart_items.items():
-            print(f"- {quantity} : {item}")
-        if self.shopping_list == self.cart_items: # TODO REPLACE WITH FUNCTION WITH CONDITIONALS
-            print("YOUR LIST IS COMPLETED, CHECK OUT NOW!")
-            return True
-        else: return False
+    def list_status(self):        
+        return self.cart_items, self.shopping_list
 
 ### OLD EXAMPLE USAGE ###
 # list_manager = ListManager()
