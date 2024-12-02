@@ -62,7 +62,7 @@ fps = 0
 
 # Loop through the video frames
 steps = []
-while cap.isOpened():
+while cap.isOpened() and frame_count < 600:
     # Read a frame from the video
     success, frame = cap.read()
     
@@ -143,51 +143,51 @@ cv2.destroyAllWindows()
 ## BELOW is for graphing the accuracy of the Kalman Filter. I (Scott) use it for troubleshooting
 ## and will include it in the presentation.
 
-# width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
-# height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
+width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
+height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
 # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
 # output = cv2.VideoWriter("output.mp4", fourcc, fps,(int(width),int(height)))
 
-# # Number of indices (assuming 12 indices)
-# num_indices = 12
+# Number of indices (assuming 12 indices)
+num_indices = 4
 
-# # Custom titles for each subplot (you can adjust this list)
-# custom_titles = [
-#     "Position X", "Position Y", "Width", "Height",
-#     "Velocity X", "Velocity Y", "Velocity Width", "Velocity Height",
-#     "Acceleration X", "Acceleration Y", "Acceleration Width", "Acceleration Height"
-# ]
+# Custom titles for each subplot (you can adjust this list)
+custom_titles = [
+    "Position X", "Position Y", "Width", "Height",
+    "Velocity X", "Velocity Y", "Velocity Width", "Velocity Height",
+    "Acceleration X", "Acceleration Y", "Acceleration Width", "Acceleration Height"
+]
 
-# # Create a figure and axes with 3 rows and 4 columns
-# fig, axes = plt.subplots(3, 4, figsize=(15, 10))
+# Create a figure and axes with 3 rows and 4 columns
+fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 
-# # Flatten the 2D array of axes for easier iteration
-# axes = axes.flatten()
+# Flatten the 2D array of axes for easier iteration
+axes = axes.flatten()
 
-# # Loop over each object in byteTrack.tracks
-# for obj in byteTrack.tracks:
-#     # Loop over the indices (0 to 11)
-#     for i in range(num_indices):
-#         # Get the state and prediction data for the i-th index
-#         state = obj.filter.state_data[i]
-#         prediction = obj.filter.prediction_data[i]
+# Loop over each object in byteTrack.tracks
+for obj in byteTrack.tracks:
+    # Loop over the indices (0 to 11)
+    for i in range(num_indices):
+        # Get the state and prediction data for the i-th index
+        state = obj.filter.state_data[i]
+        prediction = obj.filter.prediction_data[i]
         
-#         # Plot state and prediction data on the corresponding subplot
-#         ax = axes[i]
-#         ax.plot(obj.filter.steps, state, color='blue', label='State')
-#         ax.plot(obj.filter.steps, prediction, color='red', label='Prediction')
+        # Plot state and prediction data on the corresponding subplot
+        ax = axes[i]
+        ax.plot(obj.filter.steps, state, color='blue', label='State')
+        ax.plot(obj.filter.steps, prediction, color='red', label='Prediction')
 
-#         # Set the custom title and labels
-#         ax.set_title(custom_titles[i])
-#         ax.set_xlabel('Steps')
-#         ax.set_ylabel('Value')
+        # Set the custom title and labels
+        ax.set_title(custom_titles[i])
+        ax.set_xlabel('Steps')
+        ax.set_ylabel('Value')
         
-#         # Optionally, add a legend
-#         if i == 0:  # Only add legend once
-#             ax.legend()
+        # Optionally, add a legend
+        if i == 0:  # Only add legend once
+            ax.legend()
 
-#     # Adjust layout for better spacing
-#     plt.tight_layout()
+    # Adjust layout for better spacing
+    plt.tight_layout()
 
-#     # Show the plot
-#     plt.show()
+    # Show the plot
+    plt.show()

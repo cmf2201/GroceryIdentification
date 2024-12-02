@@ -1,9 +1,9 @@
 from torch import Tensor
 import numpy as np
 from functools import singledispatchmethod
-from KalmanFilter import KalmanFilter
+from Tracking.KalmanFilter import KalmanFilter
 import random
-import Utils
+import Tracking.Utils as Utils
 class Detection:
     def __init__(self, class_name, confidence:Tensor, xywh: Tensor, id=None):
         self.id = id

@@ -1,7 +1,6 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-import Utils
 
 class KalmanFilter:
     def __init__(self, init_state: np.array):

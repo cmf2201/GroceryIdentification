@@ -1,7 +1,7 @@
-from Detection import Detection
-import Utils
+import Tracking.Utils as Utils
 import copy
-from KalmanFilter import KalmanFilter
+from Tracking.Detection import Detection
+from Tracking.KalmanFilter import KalmanFilter
 class ByteTrack:
     def __init__(self, confidence_threshold: float):
         self.confidence_threshold = confidence_threshold
@@ -37,6 +37,8 @@ class ByteTrack:
             best_detection_match = None
             best_iou = 0.0
             for detection in high_confidence_detections:
+                if detection.class_name != track.class_name:
+                    continue
                 iou_value = Utils.computeIoU(track.prediction, detection.box_corners)
                 if iou_value > best_iou:
                     best_iou = iou_value
@@ -61,6 +63,8 @@ class ByteTrack:
             best_detection_match = None
             best_iou = 0.0
             for detection in low_confidence_detections:
+                if detection.class_name != track.class_name:
+                    continue
                 iou_value = Utils.computeIoU(track.prediction, detection.box_corners)
                 if iou_value > best_iou:
                     best_iou = iou_value
@@ -84,10 +88,13 @@ class ByteTrack:
             remaining_detection.filter = KalmanFilter(state)
             matched_tracks.append(remaining_detection)
         
+        
+        # TODO: Change to be the proper end case
         for track in unmatched_tracks:
             if track.frames_since_previous_detection <= 10:
                 track.frames_since_previous_detection += 1
                 matched_tracks.append(track)
+                
                 
         
         # After everything has found a match from IoU, make the matched_tracks the list of tracks.
