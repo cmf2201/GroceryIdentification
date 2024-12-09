@@ -151,6 +151,31 @@ class HomePage(QWidget):
     def goToNewListPage(self):
         self.parent.changePage(1)
 
+    #Content for implementing CV:
+    """def update_frame(self):
+        ret, frame = self.cap.read()
+        if ret:
+            # Convert the frame to RGB format
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Convert the frame to QImage
+            height, width, _ = frame_rgb.shape
+            qimg = QImage(frame_rgb.data, width, height, width * 3, QImage.Format.Format_RGB888)
+
+            # Convert QImage to QPixmap and display it
+            self.picture.setPixmap(QPixmap.fromImage(qimg))
+
+    def closeEvent(self, event):
+        # Release the video capture object when the window is closed
+        self.cap.release()
+        event.accept()
+
+    self.picture = QLabel()
+    self.cap = cv2.VideoCapture(0)
+    self.timer = QTimer(self)
+    self.timer.timeout.connect(self.update_frame)
+    self.timer.start(30)  # Update every 30ms (approx 30 frames per second)"""
+
 class ShoppingListPage(QWidget):
     def __init__(self, parent=None):
         super().__init__()
