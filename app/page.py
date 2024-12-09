@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
+import cv2
 
 from list_manager.list_manager import ListManager
 
@@ -39,11 +40,12 @@ class Page(QWidget):
         #Sets the controller index
         #0 is for home page
         #1 is for list/cart page
+        self.clearLayout()
         self.pageController.setCurrentIndex(index)
 
     #This lets us reset layout of page if needed
     def clearLayout(self):
-        self.deleteLater(self.layout())
+        self.layout().update()
 
     #Lets subpages reference list
     def getList(self):
@@ -114,16 +116,13 @@ class HomePage(QWidget):
 
         #Make navigation
         #Make Access List Bustton
-        newListBtn = QPushButton("New Shopping List", self)
-        #If a list already exists change to "View Shopping List"
-        if self.parent.getList().shopping_list.items():
-            newListBtn.setText("View Shopping List")
+        self.newListBtn = QPushButton("Shopping List", self)
 
         #Update style sheet to specify appearance of button 
         """Style sheets are a more dynamic way of setting
             multiple factors at once
             Must be led with class/subclass name"""
-        newListBtn.setStyleSheet("""
+        self.newListBtn.setStyleSheet("""
             QPushButton {
                 background-color: #E4FDE1;
                 color: black;
@@ -135,13 +134,13 @@ class HomePage(QWidget):
                                 """)
 
         #Set maximum size of button
-        newListBtn.setMaximumSize(360, 100)
+        self.newListBtn.setMaximumSize(360, 100)
 
         #Set button clicked result
-        newListBtn.clicked.connect(self.goToNewListPage)
+        self.newListBtn.clicked.connect(self.goToNewListPage)
 
         #Add button to content section of page
-        content.addWidget(newListBtn)
+        content.addWidget(self.newListBtn)
 
         #Initialize layout
         outerLayout.addLayout(content)
@@ -219,6 +218,15 @@ class ShoppingListPage(QWidget):
         topLayer.addWidget(pageLabel)
         topLayer.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.outerLayout.addLayout(topLayer)
+
+        #Add video feed
+        self.videoFeed = QLabel()
+        self.videoFeed.setFixedHeight(300)
+        self.cap = cv2.VideoCapture(0)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_frame)
+        self.timer.start(30)  # Update every 30ms (approx 30 frames per second)
+        self.outerLayout.addWidget(self.videoFeed)
 
         #Make section leader
         self.sectionHeader = QHBoxLayout()
@@ -353,9 +361,10 @@ class ShoppingListPage(QWidget):
                 widget.widget().deleteLater()
         if self.manageList.shopping_list:
             for item, quantity in self.manageList.shopping_list.items():
-                temp = BasketItem(item, quantity, parent=self)
-                self.shoppingListContents.addWidget(temp)
-                self.outerLayout.update()
+                if quantity > 0:
+                    temp = BasketItem(item, quantity, parent=self)
+                    self.shoppingListContents.addWidget(temp)
+                    self.outerLayout.update()
 
     #Populate tab with current cart data
     def grabCartData(self):
@@ -365,9 +374,10 @@ class ShoppingListPage(QWidget):
                 widget.widget().deleteLater()
         if self.manageList.cart_items:
             for item, quantity in self.manageList.cart_items.items():
-                temp = CartItem(item, quantity, parent=self)
-                self.shoppingCartContents.addWidget(temp)
-                self.outerLayout.update()
+                if quantity > 0:
+                    temp = CartItem(item, quantity, parent=self)
+                    self.shoppingCartContents.addWidget(temp)
+                    self.outerLayout.update()
 
     #Delete an item from the list (parent function)
     def deleteItem(self, name, quantity):
@@ -376,6 +386,25 @@ class ShoppingListPage(QWidget):
     #Edit an item from the list (parent function)
     def editItem(self, name, quantity):
         self.manageList.modify_quantity_of_list(name, quantity)
+
+    #For running video frame
+    def update_frame(self):
+        ret, frame = self.cap.read()
+        if ret:
+            # Convert the frame to RGB format
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Convert the frame to QImage
+            height, width, _ = frame_rgb.shape
+            qimg = QImage(frame_rgb.data, width, height, width * 3, QImage.Format.Format_RGB888)
+
+            # Convert QImage to QPixmap and display it
+            self.videoFeed.setPixmap(QPixmap.fromImage(qimg))
+
+    def closeEvent(self, event):
+        # Release the video capture object when the window is closed
+        self.cap.release()
+        event.accept()
 
 class BasketItem(QWidget):
     """This widget is built out of a collection of other widgets
@@ -509,7 +538,7 @@ class addItem(QWidget):
     
     def initialize(self):
         #Initiate addItem
-        self.setFixedSize(280,200)
+        self.setFixedSize(280,180)
         self.setStyleSheet("""
             addItem{ 
                 background-color: #90CF8E;
@@ -522,8 +551,9 @@ class addItem(QWidget):
         #Name field
         layout = QVBoxLayout()
         self.nameField = QLineEdit()
-        self.nameField.setContentsMargins(0,10,0,10)
-        self.nameField.setFixedSize(263,75)
+        self.nameField.setPlaceholderText("Item Name")
+        self.nameField.setContentsMargins(0,10,0,5)
+        self.nameField.setFixedSize(263,60)
         self.nameField.setStyleSheet("""
             QLineEdit { 
                 background-color: #E4FDE1;
@@ -536,8 +566,9 @@ class addItem(QWidget):
         
         #Quantity field
         self.quantityField = QLineEdit()
-        self.quantityField.setContentsMargins(0,10,0,10)
-        self.quantityField.setFixedSize(263,75)
+        self.quantityField.setPlaceholderText("Item Quantity")
+        self.quantityField.setContentsMargins(0,0,0,5)
+        self.quantityField.setFixedSize(263,50)
         self.quantityField.setStyleSheet("""
             QLineEdit { 
                 background-color: #E4FDE1;
