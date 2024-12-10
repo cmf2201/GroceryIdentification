@@ -1,9 +1,18 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
-
+from collections import defaultdict
+import cv2
+import numpy as np
+from ultralytics import YOLO
+import os
+import sys
+import json
+from shapely.geometry import Polygon, Point
+# Add the directory containing raycasting.py to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from raycasting import is_point_inside_polygon
 from list_manager.list_manager import ListManager
-
 class Page(QWidget):
     def __init__(self):
         super(Page, self).__init__()
@@ -11,41 +20,30 @@ class Page(QWidget):
         self.initialize()
     
     def initialize(self):
-        #Initialize the layout of the Page widget
         layout = QVBoxLayout(self)
         self.setStyleSheet("""background-color: #A7DCA5;""")
         layout.setContentsMargins(1,1,1,1)
 
-        #Start a page controller which will allow us to swap pages
         self.pageController = QStackedWidget(self)
 
-        #Initialize both pages
         homepage = HomePage(self)
         newlistpage = ShoppingListPage(self)
+        shoppage = ShopPage(self)
 
-        #Add both pages to the controller
         self.pageController.addWidget(homepage)
         self.pageController.addWidget(newlistpage)
+        self.pageController.addWidget(shoppage)
 
-        #Finalize initialization of page
-        #Set current page to home page
         self.changePage(0)
-        #Active layout
         layout.addWidget(self.pageController)
         self.setLayout(layout)
 
-    #Allow us to call change page from within individual pages
     def changePage(self, index):
-        #Sets the controller index
-        #0 is for home page
-        #1 is for list/cart page
         self.pageController.setCurrentIndex(index)
 
-    #This lets us reset layout of page if needed
     def clearLayout(self):
         self.deleteLater(self.layout())
 
-    #Lets subpages reference list
     def getList(self):
         return self.listManager
 
@@ -56,39 +54,21 @@ class HomePage(QWidget):
         self.initialize()
     
     def initialize(self):
-        #Clear any past layout data
         if self.layout() is not None:
             self.parent.clearLayout()
 
-        #Set basic page information
         self.setStyleSheet("""background-color: #A7DCA5;""")
-
-        #Make encompassing layout
-        """ Content margins just specify to not leave any 
-        space between this page and the main "page" widget.
-        Alternatively, content margins allow us to specify
-        space between the current and previous widget
-            Alignments let us specify where the center
-        of the widget should line up
-            Maximum sizes are the limits of the widget, 
-        allowing for it to dynamically change to adjust
-        for other content"""
         outerLayout = QVBoxLayout()
         outerLayout.setContentsMargins(0,0,0,0)
 
-        #Make header layout
         header = QVBoxLayout()
         header.setContentsMargins(10,10,10,10)
         header.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        #Make central content layout
         content = QVBoxLayout()
         content.setContentsMargins(10,10,10,10)
         content.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-
-        #Add picture to home screen
-        #We do this by entering a pixmap with the path to the image
         picture = QLabel()
         picture.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pictureMap = QPixmap("app/images/Groceries.PNG")
@@ -97,32 +77,17 @@ class HomePage(QWidget):
         picture.setMaximumSize(360,360)
         header.addWidget(picture)
 
-        #Make Page Header
-        #We can set fonts and sizes without requiring stylesheets
         pageHeader = QLabel("Grocery Assistant")
         pageHeader.setFont(QFont("Georgia", 28))
         pageHeader.setMaximumHeight(100)
-
-        #Center header & add extra top padding
         pageHeader.setContentsMargins(0,10,0,0)
         pageHeader.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        #Add content to the header,
-        #Add header to the top layer of the page
         header.addWidget(pageHeader)
         outerLayout.addLayout(header)
 
-        #Make navigation
-        #Make Access List Bustton
         newListBtn = QPushButton("New Shopping List", self)
-        #If a list already exists change to "View Shopping List"
         if self.parent.getList().shopping_list.items():
             newListBtn.setText("View Shopping List")
-
-        #Update style sheet to specify appearance of button 
-        """Style sheets are a more dynamic way of setting
-            multiple factors at once
-            Must be led with class/subclass name"""
         newListBtn.setStyleSheet("""
             QPushButton {
                 background-color: #E4FDE1;
@@ -133,23 +98,296 @@ class HomePage(QWidget):
                 font: 20pt 'Georgia'
                 }
                                 """)
-
-        #Set maximum size of button
         newListBtn.setMaximumSize(360, 100)
-
-        #Set button clicked result
         newListBtn.clicked.connect(self.goToNewListPage)
-
-        #Add button to content section of page
         content.addWidget(newListBtn)
 
-        #Initialize layout
+        shopBtn = QPushButton("Shop", self)
+        shopBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #E4FDE1;
+                color: black;
+                border: 2px solid #90CF8E;
+                border-radius: 14px;
+                padding: 10px 20px;              
+                font: 20pt 'Georgia'
+                }
+                                """)
+        shopBtn.setMaximumSize(360, 100)
+        shopBtn.clicked.connect(self.goToShopPage)
+        content.addWidget(shopBtn)
+
         outerLayout.addLayout(content)
         self.setLayout(outerLayout)
 
-    #Define parent function to change pages
     def goToNewListPage(self):
         self.parent.changePage(1)
+
+    def goToShopPage(self):
+        self.parent.changePage(2)
+
+class ShopPage(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.parent = parent
+        self.manageList = parent.getList()
+        self.use_webcam = True  # Default to using the webcam
+        self.initialize()
+    
+    def initialize(self):
+        self.setStyleSheet("""background-color: #A7DCA5;""")
+        layout = QVBoxLayout()
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Create a widget to hold the webcam feed and set its size policy
+        self.webcamLabel = QLabel(self)
+        self.webcamLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.webcamLabel.setFixedHeight(int(self.height() * 0.8))  # Set height to 80% of the screen
+        layout.addWidget(self.webcamLabel)
+
+        # Create a widget to hold the shopping list and cart items
+        listWidget = QWidget(self)
+        listLayout = QVBoxLayout(listWidget)
+        listLayout.setContentsMargins(0, 0, 0, 0)
+
+        listLabel = QLabel("Shopping List")
+        listLabel.setFont(QFont("Georgia", 20))
+        listLayout.addWidget(listLabel)
+
+        self.shoppingListContents = QVBoxLayout()
+        listLayout.addLayout(self.shoppingListContents)
+
+        cartLabel = QLabel("Items in Cart")
+        cartLabel.setFont(QFont("Georgia", 20))
+        listLayout.addWidget(cartLabel)
+
+        self.cartContents = QVBoxLayout()
+        listLayout.addLayout(self.cartContents)
+
+        layout.addWidget(listWidget)
+
+        setupBtn = QPushButton("Setup", self)
+        setupBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #E4FDE1;
+                color: black;
+                border: 2px solid #90CF8E;
+                border-radius: 14px;
+                padding: 5px 10px;              
+                font: 12pt 'Georgia'
+                }
+                                """)
+        setupBtn.setMaximumSize(180, 50)
+        setupBtn.clicked.connect(self.captureAndSetup)
+        layout.addWidget(setupBtn, alignment=Qt.AlignmentFlag.AlignBottom)
+
+        switchBtn = QPushButton("Switch to Video", self)
+        switchBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #E4FDE1;
+                color: black;
+                border: 2px solid #90CF8E;
+                border-radius: 14px;
+                padding: 5px 10px;              
+                font: 12pt 'Georgia'
+                }
+                                """)
+        switchBtn.setMaximumSize(180, 50)
+        switchBtn.clicked.connect(self.switchSource)
+        layout.addWidget(switchBtn, alignment=Qt.AlignmentFlag.AlignBottom)
+
+        backBtn = QPushButton("Back", self)
+        backBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #E4FDE1;
+                color: black;
+                border: 2px solid #90CF8E;
+                border-radius: 14px;
+                padding: 5px 10px;              
+                font: 12pt 'Georgia'
+                }
+                                """)
+        backBtn.setMaximumSize(180, 50)
+        backBtn.clicked.connect(self.goBack)
+        layout.addWidget(backBtn, alignment=Qt.AlignmentFlag.AlignBottom)
+
+        self.setLayout(layout)
+        self.startWebcam()
+
+    def startWebcam(self):
+        if self.use_webcam:
+            self.capture = cv2.VideoCapture(0)  # Use the actual webcam
+        else:
+            video_path = "C:\\Users\\bmanw\\GroceryIdentification\\yolo_custom_training\\example_video_shor.mp4"
+            self.capture = cv2.VideoCapture(video_path)  # Use the video file
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateFrame)
+        self.timer.start(20)
+
+        # Load polygons from polygons.json
+        try:
+            with open('polygons.json', 'r') as f:
+                content = f.read().strip()
+                if content:
+                    self.polygons = json.loads(content)
+                    print("Polygons loaded from polygons.json")
+                else:
+                    print("polygons.json is empty, starting with empty polygons")
+                    self.polygons = {'cart': []}
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("polygons.json not found or invalid, starting with empty polygons")
+            self.polygons = {'cart': []}
+
+        # Load the YOLO model
+        model_path = 'yolo11s.pt'
+        self.model = YOLO(model_path, verbose=True)
+        self.TRACKED_CLASSES = [46, 47, 48, 49, 50, 52, 53, 54, 55, 56]
+        self.track_history = defaultdict(lambda: [])
+        self.last_seen = {}
+        self.max_frames_missing = 30  # Number of frames to wait before removing a track
+        self.current_tracks = []
+        self.frame_count = 0
+
+    def switchSource(self):
+        self.use_webcam = not self.use_webcam
+        self.capture.release()
+        self.startWebcam()
+
+    def updateFrame(self):
+        class_names = {
+            46: 'bananas',
+            47: 'apples',
+            48: 'carrots',
+            49: 'oranges',
+            50: 'broccoli',
+            52: 'pizza',
+            53: 'hot dog',
+            54: 'sandwich',
+            55: 'cake',
+            56: 'donut'  # Add the missing class ID
+        }
+        ret, frame = self.capture.read()
+        if ret:
+            # Run YOLO tracking on the full-resolution frame
+            results = self.model.track(frame, persist=True, classes=self.TRACKED_CLASSES, tracker="bytetrack.yaml", conf=0.35)
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id
+            class_ids = results[0].boxes.cls
+            if track_ids is not None:
+                track_ids = track_ids.int().cpu().tolist()
+            else:
+                track_ids = []
+            if class_ids is not None:
+                class_ids = class_ids.int().cpu().tolist()
+            else:
+                class_ids = []
+
+            # Visualize the results on the frame
+            annotated_frame = results[0].plot()
+
+            # Draw polygons on the annotated frame
+            for polygon in self.polygons['cart']:
+                cv2.polylines(annotated_frame, [np.array(polygon, np.int32).reshape((-1, 1, 2))], isClosed=True, color=(0, 255, 0), thickness=5)
+
+            # Plot the tracks
+            for box, track_id, class_id in zip(boxes, track_ids, class_ids):
+                x, y, w, h = box
+                track = self.track_history[track_id]
+                track.append((float(x), float(y)))  # x, y center point
+                if len(track) > 30:  # retain 30 tracks for 30 frames
+                    track.pop(0)
+
+                # Calculate the bounding box center
+                bbox_center = (x, y)
+
+                # Check if the bounding box center is inside any polygon
+                in_cart = False
+                for polygon in self.polygons['cart']:
+                    in_cart = in_cart or is_point_inside_polygon(bbox_center, polygon)
+
+                if in_cart and (track_id not in self.current_tracks):
+                    print("Adding item to cart: ", class_names[class_id])
+                    self.manageList.add_item_to_cart(class_names[class_id])
+                    self.refreshList()  # Refresh the list to update the cart items
+
+                if track_id not in self.current_tracks:
+                    self.current_tracks.append(track_id)
+
+                self.last_seen[track_id] = (self.frame_count, class_id)
+
+            # Remove tracks that have not been seen for a while
+            for track_id in list(self.last_seen.keys()):
+                if self.frame_count - self.last_seen[track_id][0] > self.max_frames_missing:
+                    class_id = self.last_seen[track_id][1]
+                    if class_id is not None:
+                        print("Removing item from cart: ", class_names[class_id])
+                        self.manageList.remove_item_from_cart(class_names[class_id])
+                        self.refreshList()  # Refresh the list to update the cart items
+                    self.current_tracks.remove(track_id)
+                    del self.last_seen[track_id]
+
+            # Resize the annotated frame for display
+            annotated_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+            image = QImage(annotated_frame, annotated_frame.shape[1], annotated_frame.shape[0], QImage.Format.Format_RGB888)
+            scaled_image = image.scaled(self.webcamLabel.size(), Qt.AspectRatioMode.KeepAspectRatio)
+            self.webcamLabel.setPixmap(QPixmap.fromImage(scaled_image))
+
+            self.frame_count += 1
+
+    def captureAndSetup(self):
+        ret, frame = self.capture.read()
+        if ret:
+            # Save the captured frame as an image
+            image_path = "captured_image.jpg"
+            cv2.imwrite(image_path, frame)  # Save the native resolution image
+            # Call the setup_assistant script with the captured image
+            os.system(f"python setup_assistant.py {image_path}")
+            # Reload polygons after setup
+            self.loadPolygons()
+
+    def loadPolygons(self):
+        # Load polygons from polygons.json
+        try:
+            with open('polygons.json', 'r') as f:
+                content = f.read().strip()
+                if content:
+                    self.polygons = json.loads(content)
+                    print("Polygons loaded from polygons.json")
+                else:
+                    print("polygons.json is empty, starting with empty polygons")
+                    self.polygons = {'cart': []}
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("polygons.json not found or invalid, starting with empty polygons")
+            self.polygons = {'cart': []}
+
+    def setup_assistant(self, image_path):
+        # Implement the setup_assistant function
+        print(f"Running setup_assistant on {image_path}")
+
+    def populateList(self, layout, items):
+        # Clear the existing items
+        for i in reversed(range(layout.count())):
+            widget = layout.itemAt(i).widget()
+            if widget is not None:
+                widget.setParent(None)
+        
+        # Populate with new items
+        for item, quantity in items.items():
+            itemLabel = QLabel(f"{item}: {quantity}")
+            itemLabel.setFont(QFont("Georgia", 14))  # Make the font size smaller
+            layout.addWidget(itemLabel)
+
+    def refreshList(self):
+        self.populateList(self.shoppingListContents, self.manageList.shopping_list)
+        self.populateList(self.cartContents, self.manageList.cart_items)
+
+    def showEvent(self, event):
+        self.refreshList()
+        super().showEvent(event)
+
+    def goBack(self):
+        self.parent.changePage(0)
 
 class ShoppingListPage(QWidget):
     def __init__(self, parent=None):

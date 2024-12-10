@@ -15,7 +15,7 @@ class groceryAssistant:
         self.TRACKED_CLASSES = TRACKED_CLASSES
         # setup cap based on setup_type
         if setup_type == 'video':
-            video_path = 'C:\Users\bmanw\GroceryIdentification\yolo_custom_training\example_video.mp4'
+            video_path = r'C:\Users\bmanw\GroceryIdentification\yolo_custom_training\example_video.mp4'
             self.cap = cv2.VideoCapture(video_path)
         else: 
             #capture picture
