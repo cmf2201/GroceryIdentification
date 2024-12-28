@@ -46,7 +46,7 @@ class KalmanFilter:
         self.predict_x = np.matmul(F, self.x)
         self.predict_P = F @ self.P @ F.T + np.eye(12) * 1e-3  # Small regularization term to avoid singularity
     
-    def update(self, measurement: np.array):
+    def update(self, measurement: np.array, frame=None):
         measurement.shape = (4,1)
         y = measurement - self.H @ self.predict_x
         S = self.H @ self.P @ self.H.T + self.R
@@ -58,8 +58,12 @@ class KalmanFilter:
         
         self.state_data = np.concatenate((self.state_data, self.x), axis=1)
         self.prediction_data= np.concatenate((self.prediction_data, self.predict_x), axis=1)
-        self.steps.append(self.count)
-        self.count += 1
+        if frame is not None:
+            self.steps.append(frame)
+            self.count += 1
+        else:
+            self.steps.append(frame)
+            self.count += 1
 
 def main(args=None):
     """

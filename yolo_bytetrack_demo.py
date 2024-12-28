@@ -88,6 +88,7 @@ byteTrack = ByteTrack(0.6)
 
 # Loop through the video frames
 frames = 0
+frames_plot_count = 0
 frames_plot = []
 track_x = []
 track_y = []
@@ -115,8 +116,9 @@ while cap.isOpened() and frames < 500:
                 track_w.append(xywh[0,2].item())
                 track_h.append(xywh[0,3].item())
                 detections.append(Detection(class_name, confidence, box.xywh))
-                frames_plot.append(frames)
-        # byteTrack.updateTracks(detections)
+                frames_plot_count += 1
+                frames_plot.append(frames_plot_count)
+        byteTrack.updateTracks(detections, frames_plot_count)
 
         # Visualize the results on the frame
         # annotated_frame: np.ndarray = results[0].plot()
@@ -180,19 +182,22 @@ fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 # Flatten the 2D array of axes for easier iteration
 axes = axes.flatten()
 
-# Loop over each object in byteTrack.tracks
 for _ in range(0, 1):
     # Loop over the indices (0 to 11)
     for i in range(num_indices):
         # Get the state and prediction data for the i-th index
-        # state = obj.filter.state_data[i]
-        # prediction = obj.filter.prediction_data[i]
+        state = byteTrack.tracks[0].filter.state_data[i]
+        prediction = byteTrack.tracks[0].filter.prediction_data[i]
+        steps = byteTrack.tracks[0].filter.steps
+        state = state[1:]
+        prediction = prediction[1:]
+        steps = steps[1:]
         
         # Plot state and prediction data on the corresponding subplot
         ax = axes[i]
-        # ax.plot(obj.filter.steps, state, color='blue', label='State')
-        # ax.plot(obj.filter.steps, prediction, color='red', label='Prediction')
-        ax.plot(frames_plot, data[i], color='black', label='YOLOv11 ByteTrack')
+        ax.plot(frames_plot, data[i], color='black', label='YOLOv11 ByteTrack Measurements')
+        ax.plot(steps, prediction, color='red', label='Our ByteTrack Predictions')
+        ax.plot(steps, state, color='blue', label='Our ByteTrack Measurements')
 
         # Set the custom title and labels
         ax.set_title(custom_titles[i])
@@ -200,8 +205,7 @@ for _ in range(0, 1):
         ax.set_ylabel('Value')
         
         # Optionally, add a legend
-        if i == 0:  # Only add legend once
-            ax.legend()
+        ax.legend()
 
     # Adjust layout for better spacing
     plt.tight_layout()

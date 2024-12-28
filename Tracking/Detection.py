@@ -63,7 +63,7 @@ class Detection:
         return [x_difference, y_difference]
         
     
-    def updateInfo(self, new_detection: 'Detection'):
+    def updateInfo(self, new_detection: 'Detection', frame=None):
         self.previous = self
         vel = self.calculateVel()
         self.vel_x = vel[0]
@@ -76,4 +76,4 @@ class Detection:
         self.width = new_detection.width
         self.height = new_detection.height
         measurement = Utils.detectionToMeasurement(new_detection)
-        self.filter.update(measurement)
+        self.filter.update(measurement, frame=frame)

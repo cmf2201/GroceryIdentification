@@ -9,7 +9,7 @@ class ByteTrack:
         self.tracks: list[Detection] = []
         self.id_count = 0
         
-    def updateTracks(self, detections: list[Detection]) -> None:
+    def updateTracks(self, detections: list[Detection], frame=None) -> None:
         """Updates the list of tracks within the ByteTrack object.
 
         Args:
@@ -50,7 +50,7 @@ class ByteTrack:
             # matched track from self.tracks to prevent it from attempting to match with
             # the low confidence matches. matched_tracks will become self.tracks at the end of
             # this method.
-            track.updateInfo(best_detection_match)
+            track.updateInfo(best_detection_match, frame)
             matched_tracks.append(track)
             
             # We remove this from the high detections to prevent the matched detection from
@@ -73,7 +73,7 @@ class ByteTrack:
             if best_detection_match is None:
                 continue
             
-            track.updateInfo(best_detection_match)
+            track.updateInfo(best_detection_match, frame)
             matched_tracks.append(track)
             low_confidence_detections.remove(best_detection_match)
             
